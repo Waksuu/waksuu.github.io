@@ -5,6 +5,7 @@ Probably hiring a bunch of interns to test code manually after each commit, but 
 
 In this post I will focus on the importance of black box testing and how this can be achieved  in React.
 I will be using jest, react-testing-liblary and Typescript for my own sanity. I am also gonna assume that you know the basics of these technologies.
+
 In addition I will only focus on Integration Testing (how to test flow of your component without need for backend) because I don't feel that there are good resources for that and Unit Testing is well examined.
 
 #

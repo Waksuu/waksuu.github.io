@@ -82,3 +82,20 @@ export const clearMovies = (): ClearMovieListAction => {
 }
 
 ````
+
+ `Movie.reducer.ts`
+```` typescript
+const moviesInitialState: MovieDTO[] = [];
+
+export const movieReducer = (state = moviesInitialState, action: MovieListActionTypes): MovieDTO[] => {
+    switch (action.type) {
+        case MovieListRetrieved:
+            return action.movies;
+        case ClearMovieListRequest:
+            return [];
+        default:
+            return state;
+    }
+};
+````
+

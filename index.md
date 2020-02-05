@@ -104,7 +104,8 @@ Let's assume that method `getAllMovies()`in  `Movie.action.ts` is an API call th
 Now there is one problem, how do we write test for a component that is depended on external API?
 Well there are two most popular options:
 
-You can intercept all API calls with some test interceptor (external liblary) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that. </br>
+You can intercept all API calls with some test interceptor (external liblary) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that.
+
 Or we can apply <i>Inversion of Control</i> principle and take our dependency (the `getAllMovies()` method) as a parameter to action (as a method reference) and then compose our component, with all of its dependecies in a  `MoviePanel.component.tsx`.
 
 ## Implementation

@@ -64,7 +64,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
 ```` typescript
 export const retrieveMoviesAction = (): ThunkAction<Promise<void>, AppState, undefined, AppActions> => {
     return async (dispatch: ThunkDispatch<AppState, any, AppActions>) => {
-        const movies: MovieDTO[] = await getAllMovies();
+        const movies: MovieDTO[] = await getAllMoviesREST();
         dispatch(moviesRetrieved(movies));
     };
 };
@@ -100,13 +100,58 @@ export const movieReducer = (state = moviesInitialState, action: MovieListAction
 };
 ````
 
-Let's assume that method `getAllMovies()`in  `Movie.action.ts` is an API call that returns promise  (for the simplicity of this example under the hood it is just a mock but I'll leave it to your imagination to do the REST).
+Let's assume that method `getAllMoviesREST()`in  `Movie.action.ts` is an API call that returns promise  (for the simplicity of this example under the hood it is just a mock but I'll leave it to your imagination to do the REST).
 Now there is one problem, how do we write test for a component that is depended on external API?
 Well there are two most popular options:
 
-You can intercept all API calls with some test interceptor (external liblary) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that.
+You can intercept all API calls with some test interceptor (external liblary) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that. </br>
+Or we can apply <i>Inversion of Control</i> principle and take our dependency (the `getAllMoviesREST()` method) as a parameter to action (as a method reference) and then compose our component, with all of its dependecies in a  `MoviePanel.component.tsx`.
 
-Or we can apply <i>Inversion of Control</i> principle and take our dependency (the `getAllMovies()` method) as a parameter to action (as a method reference) and then compose our component, with all of its dependecies in a  `MoviePanel.component.tsx`.
+## Making our component testable
+Firstly let's make our action method (`retrieveMoviesAction()`in  `Movie.action.ts`) independent of concrete implementation of `getAllMoviesREST()` by simply recieving this method as function parameter.
 
-## Implementation
-Firstly let's make our action method (`retrieveMoviesAction()`in  `Movie.action.ts`) independent of concrete implementation of `getAllMovies()` by simply recieving this method as function parameter.
+ `Movie.action.ts`
+````typescript 
+export const retrieveMoviesAction = (getAllMovies: () => Promise<MovieDTO[]>): ThunkAction<Promise<void>, AppState, undefined, AppActions> => {
+    return async (dispatch: ThunkDispatch<AppState, any, AppActions>) => {
+        const movies: MovieDTO[] = await getAllMovies();
+        dispatch(moviesRetrieved(movies));
+    };
+};
+````
+Simple enough.
+
+Ok but now our  `MoviePanel.component.tsx` is complaining that function `retrieveMoviesAction()` requires 1 argumnet and not 0.
+
+Now you might be temptend to just directly add conrete implementation of our `getAllMovies` method in `mapDispatchToProps` like this.
+
+ `MoviePanel.component.tsx`
+````typescript 
+const mapDispatchToProps = (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
+    clearMovies: () => dispatch(clearMovies())
+});
+````
+
+But this solution still blocks us from injecting mocks into our component. </br>
+Now we need to apply <i>Inversion of Control</i> principle for `mapDispatchToProps` in conjuction with <a href="https://blog.bitsrc.io/understanding-currying-in-javascript-ceb2188c339" target="_blank">currying</a>.
+
+````typescript 
+const mapDispatchToProps = (
+        getAllMovies: () => Promise<MovieDTO[]>
+    ) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
+});
+
+export default connect(mapStateToProps, (
+        dispatch: ThunkDispatch<AppState, any, AppActions>
+    ) => mapDispatchToProps(getAllMoviesREST)(dispatch))
+(MoviePanel);
+````
+
+Notice that we pass `getAllMoviesREST` in the connect function, allowing connect function to compose our component.
+
+I will provide detailed explanation on how it exactly works at the end of this post.
+
+## Testing our component

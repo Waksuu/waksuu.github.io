@@ -1,4 +1,5 @@
 
+
 # Black box Integration Testing React components connected to Redux
 
 Whats the better way to make your code more maintainable and easier to change in the future than writing tests?
@@ -157,4 +158,21 @@ Notice that we pass `getAllMoviesREST` in the connect function, allowing connect
 
 I will provide detailed explanation on how it exactly works at the end of this post.
 
+In order to create MoviePanel component in tests we have to add few exports
+ `MoviePanel.component.tsx`
+````typescript 
+export const MoviePanel: FC<Props> = (props: Props) => {
+	...
+};
+````
+````typescript 
+export  const  mapStateToProps = (state: AppState): LinkStateProps  => ({
+	...
+});
+````
+````typescript 
+export const mapDispatchToProps = (
+	...
+});
+````
 ## Testing our component

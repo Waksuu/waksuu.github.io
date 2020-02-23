@@ -158,7 +158,6 @@ export default connect(mapStateToProps, (
 
 Notice that we pass `getAllMoviesREST` in the connect function, allowing connect function to compose our component.
 
-//TODO: FIX LINK
 I will provide detailed explanation on how it exactly works at the  [end](#how-are-we-able-to-inject-dependencies-in-connect-function) of this post.
 
 In order to create MoviePanel component in tests we have to add few exports </br>

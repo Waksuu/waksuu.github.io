@@ -1,7 +1,7 @@
 
 
 
-# Black box Integration Testing React components connected to Redux
+# Black box testing React components connected to Redux
 
 Whats the better way to make your code more maintainable and easier to change in the future than writing tests?
 Probably hiring a bunch of interns to test code manually after each commit, but we don't have time and money for that so tests will have to do.
@@ -10,7 +10,7 @@ In this post I will focus on the importance of black box testing and how this ca
 I will be using jest, react-testing-liblary, redux-thunk and Typescript for my own sanity.</br>
 I am also gonna assume that you know the basics of these technologies.
 
-In addition I will only focus on Integration Testing (how to test flow of your component without need for backend) because I don't feel that there are good resources for that and Unit Testing is well examined.
+In addition I will only focus on Component Integration Testing (how to test flow of your component in isolated environment) because I don't feel that there are good resources for that and Unit Testing is well examined.
 
 ## Black box testing, why bother?
 
@@ -19,9 +19,10 @@ This kind of enviroment discourages developers from refactoring and writing test
 
 We can avoid this problemy by changing the way of thinking about our code and trying to test <i> behaviour </i> and not the internal implementation (that can be easlily changed). Doing so greatly reduces the need of changing tests when we want to change the way that our code works (e.g. refactoring code for optimization reasons).
 
+//TODO: UMM PRETTY BAD EXAMPLE CONSIDERING THAT I AM WRITING ABOUT REUDX TESTING...
 For example, when testing let's say button counter component, I shouldn't care if the way of storing button counter is implemented within the component as internal state or Redux deals with it, this is an <i>implementation detail</i> that can change, but the <i> behaviour </i> of the button will stay the same.
 
-You might say, ok this is a very basic exmaple, real world is not that easy and components have some kind of dependencies (e.g component is calling some endpoint to retrieve data), and how do I test it?
+You might say, that this is a very basic exmaple, real world is not that easy and components have some kind of dependencies (e.g component is calling some endpoint to retrieve data), and how do I test that?
 
 ## Test scenario
 
@@ -157,6 +158,7 @@ export default connect(mapStateToProps, (
 
 Notice that we pass `getAllMoviesREST` in the connect function, allowing connect function to compose our component.
 
+//TODO: ADD LINK TO THE END OF THE POST [link](#1-this-is-my-header)
 I will provide detailed explanation on how it exactly works at the end of this post.
 
 In order to create MoviePanel component in tests we have to add few exports </br>
@@ -200,7 +202,7 @@ export const MovieList: FC<Props> = (props: Props) => {
 };
 ````
 ## Testing our component
-Testing components connected to redux is very simmilar to testing components typical components. The main difference is that we have to create component using ``connect`` function, wrap our component in ``Provider`` component and create mock store. 
+Testing components connected to redux is very simmilar to testing typical components. The main difference is that we have to create component using ``connect`` function, wrap our component in ``Provider`` component and create mock store. 
 
 Let's start with creating our component with ``connect`` function. </br>
 
@@ -226,6 +228,7 @@ const mockMovies: MovieDTO[] = [
     },
 ]
 ````
+(The component name has to start from upper case)
 And that's it, now we created mock component with injected dependencies. 
 
 Now we need to create store
@@ -281,3 +284,5 @@ describe("Movie Panel", () => {
 ````
 
 All code samples can be found on my <a href="https://github.com/Waksuu/react-exploratory/tree/after-redux-tests">github</a>
+
+## How are we able to inject dependencies in ``connect`` function

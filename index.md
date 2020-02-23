@@ -1,5 +1,6 @@
 
 
+
 # Black box Integration Testing React components connected to Redux
 
 Whats the better way to make your code more maintainable and easier to change in the future than writing tests?
@@ -158,7 +159,7 @@ Notice that we pass `getAllMoviesREST` in the connect function, allowing connect
 
 I will provide detailed explanation on how it exactly works at the end of this post.
 
-In order to create MoviePanel component in tests we have to add few exports
+In order to create MoviePanel component in tests we have to add few exports </br>
  `MoviePanel.component.tsx`
 ````typescript 
 export const MoviePanel: FC<Props> = (props: Props) => {
@@ -175,4 +176,108 @@ export const mapDispatchToProps = (
 	...
 });
 ````
+And in order to check if our component was changed upon some action we need to add ``data-testid`` in two places. </br>
+``MovieControls.component.tsx``
+````typescript 
+export const MovieControls: FC<Props> = (props: Props) => {
+    return (
+        <button data-testid="clear-movies-button" onClick={props.clearMovies} className="my-button">
+            Clear movies!
+        </button>
+    );
+};
+````
+``MovieList.component.tsx``
+````typescript
+export const MovieList: FC<Props> = (props: Props) => {
+    return (
+        <div data-testid="movie-list-component">
+            {props.movies.map(movie =>
+                <div key={movie.id}>{movie.name}</div>
+            )} 
+        </div>
+    );
+};
+````
 ## Testing our component
+Testing components connected to redux is very simmilar to testing components typical components. The main difference is that we have to create component using ``connect`` function, wrap our component in ``Provider`` component and create mock store. 
+
+Let's start with creating our component with ``connect`` function. </br>
+
+````typescript 
+import { mapStateToProps, mapDispatchToProps, MoviePanel } from  "../../../app/movie/MoviePanel.component";
+...
+const MoviePanelMock: FC = connect(mapStateToProps, (
+            dispatch: ThunkDispatch<AppState, any, AppActions>
+        ) => mapDispatchToProps(getAllMoviesMock)(dispatch))(MoviePanel);
+        
+const getAllMoviesMock = (): Promise<MovieDTO[]> => {
+    return Promise.resolve(mockMovies);
+}
+
+const mockMovies: MovieDTO[] = [
+    {
+        id: 1,
+        name: "Mock movie 1"
+    },
+    {
+        id: 2,
+        name: "Mock movie 2"
+    },
+]
+````
+And that's it, now we created mock component with injected dependencies. 
+
+Now we need to create store
+
+````typescript 
+import { configureStore, AppState } from  "../../../common/redux/store/ConfigureStore";
+...
+const mockStore: Store<AppState, AppActions> = configureStore();
+````
+Simple enough.
+
+And finally rendering our component
+````typescript 
+await render(
+	<Provider store={mockStore}>
+		<MoviePanelMock />
+	</Provider>
+)
+````
+<b>Notice</b> that we are awaiting for the render function, if we don't do this then our test won't wait for reducer to finish (even though dispatches in redux are synchronous)
+
+In the end our sample test can look like this.
+
+````typescript 
+describe("Movie Panel", () => {
+    let mockStore: Store<AppState, AppActions>;
+    let MoviePanelMock: FC
+
+    beforeEach(() => {
+        mockStore = configureStore();
+        MoviePanelMock = connect(mapStateToProps, (
+            dispatch: ThunkDispatch<AppState, any, AppActions>
+        ) => mapDispatchToProps(getAllMoviesMock)(dispatch))(MoviePanel);
+    });
+
+    afterEach(cleanup);
+    
+    test("Should clear movies after pressing clear movies button", async () => {
+        // GIVEN
+        await render(
+            <Provider store={mockStore}>
+                <MoviePanelMock />
+            </Provider>
+        )
+
+        // WHEN
+        fireEvent.click(screen.getByTestId("clear-movies-button"));
+
+        // THEN
+        expect(screen.queryByTestId("movie-list-component")).toBeEmpty();
+    })
+})
+````
+
+All code samples can be found on my <a href="https://github.com/Waksuu/react-exploratory/tree/after-redux-tests">github</a>

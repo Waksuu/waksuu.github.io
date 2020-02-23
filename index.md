@@ -317,7 +317,7 @@ As you can see our mapDispatchToProps should be a function that has two paramete
 ``
 and this is the information that we were looking for.
 
-Let's create that function
+Let's create that function </br>
  `MoviePanel.component.tsx`
 ```typescript
 ...

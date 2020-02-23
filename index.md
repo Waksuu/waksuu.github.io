@@ -158,6 +158,7 @@ export default connect(mapStateToProps, (
 
 Notice that we pass `getAllMoviesREST` in the connect function, allowing connect function to compose our component.
 
+//TODO: FIX LINK
 I will provide detailed explanation on how it exactly works at the  [end](#how-are-we-able-to-inject-dependencies-in-connect-function) of this post.
 
 In order to create MoviePanel component in tests we have to add few exports </br>
@@ -284,4 +285,98 @@ describe("Movie Panel", () => {
 
 All code samples can be found on my <a href="https://github.com/Waksuu/react-exploratory/tree/after-redux-tests">github</a>
 
-## How are we able to inject dependencies in ``connect`` function
+## How are we able to inject dependencies in ``connect`` function?
+Let's take a look into the ``connect`` function. What does the connect function do? 
+
+ Connect function takes two parameters (well it takes four but we are intrested only in the first two) ``mapStateToProps`` <i>function</i> and ``mapDispatchToProps`` <i>function</i> | <i>object</i> and returns component that is connected to redux store (component with values at disposal defined in previous mentioned functions). </br>
+The ``mapStateToProps`` is not important to us, instead let's dive into ``mapDispatchToProps`` in function form.
+
+Maybe type definitions will help us with understaning it.
+``connect``
+````typescript
+    <TStateProps = {}, TDispatchProps = {}, TOwnProps = {}, State = DefaultRootState>(
+        mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps, State>,
+        mapDispatchToProps: MapDispatchToPropsNonObject<TDispatchProps, TOwnProps>
+    ): InferableComponentEnhancerWithProps<TStateProps & TDispatchProps, TOwnProps>;
+````
+Yeah... that does not look simple, we need to go deeper.
+``mapDispatchToProps``
+```typescript
+export type MapDispatchToPropsNonObject<TDispatchProps, TOwnProps> = MapDispatchToPropsFactory<TDispatchProps, TOwnProps> | MapDispatchToPropsFunction<TDispatchProps, TOwnProps>;
+```
+Not deep enough
+
+``MapDispatchToPropsFunction``
+```typescript
+export type MapDispatchToPropsFunction<TDispatchProps, TOwnProps> =
+    (dispatch: Dispatch<Action>, ownProps: TOwnProps) => TDispatchProps;
+```
+Ok we can work with that. </br>
+As you can see our mapDispatchToProps should be a function that has two parameters  
+``
+ (dispatch: Dispatch<Action>, ownProps: TOwnProps)
+``
+and this is the information that we were looking for.
+
+Let's create that function
+ `MoviePanel.component.tsx`
+```typescript
+...
+export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
+    clearMovies: () => dispatch(clearMovies())
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
+```
+We are not using second paramter ``ownProps`` so we can ommit it in javascript </br>
+But wait what's that the ``dispatch`` parameter was of type ``Dispatch<Action>`` and not ``ThunkDispatch<AppState,  any, AppActions>`` is it a mistake?
+
+No, thanks to ReduxThunk middleware standard redux dispatch is enchanced with thunk dispatch and now it's type looks like this ``ThunkDispatch<AppState,  any, AppActions>``
+
+Since second paramter of ``connect`` function must be a function that takes ``dispatch: ThunkDispatch<AppState,  any, AppActions>`` we can wrap our ``mapDispatchToProps`` function into anonymus function and pass ``dispatch `` paramter to ``mapDispatchToProps`` explicitly.
+
+```typescript
+...
+export const mapDispatchToProps = (dispatch: ThunkDispatch<AppState, any, AppActions>): export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
+    clearMovies: () => dispatch(clearMovies())
+});
+
+export default connect(mapStateToProps, (dispatch) => mapDispatchToProps(dispatch))(MoviePanel);
+```
+Now we have full control over when to pass ``dispatch`` to ``mapDispatchToProps`` allowing us to create <i>Higher Order Function </i> and apply <i> Inversion of Control </i> to get rid of this nasty concrete implementation of  ``getAllMoviesREST`` in our component. </br>
+Are you still with me? Good, let's just do that.
+
+Time to move ``getAllMoviesREST`` to a paramter of ``mapDispatchToProps``
+```typescript
+...
+export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
+});
+```
+As you can see instead of adding another parameter next to ``dispatch`` in  ``mapDispatchToProps`` we are wrapping it into another function by using <i>currying</i>. Thanks to this we won't be interfering with standard interface of ``mapDispatchToProps`` function (which takes ownProps as second parameter) allowing us to write it in more programmer friendly syntax.
+
+Like this:
+```typescript
+export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
+});
+
+export default connect(mapStateToProps, mapDispatchToProps(getAllMoviesREST))(MoviePanel);
+```
+This is also valid, but more explicit
+```typescript
+export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
+});
+
+export default connect(mapStateToProps, (dispatch: ThunkDispatch<AppState, any, AppActions>) => mapDispatchToProps(getAllMoviesREST)(dispatch))(MoviePanel);
+```
+
+And now our component is free of it's dependencies that would make testing harder.
+
+Huge shout out to <a href="https://github.com/venthe">Jacek Lipiec</a> for helping me figuring this stuff out!

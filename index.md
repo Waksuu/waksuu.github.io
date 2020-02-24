@@ -227,7 +227,7 @@ const mockMovies: MovieDTO[] = [
     },
 ]
 ````
-(The component name has to start from upper case)
+(The component name has to start from upper case)</br>
 And that's it, now we created mock component with injected dependencies. 
 
 Now we need to create store
@@ -376,6 +376,6 @@ export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
 export default connect(mapStateToProps, (dispatch: ThunkDispatch<AppState, any, AppActions>) => mapDispatchToProps(getAllMoviesREST)(dispatch))(MoviePanel);
 ```
 
-And now our component is free of its dependencies that would make testing harder.
+And now our component is free of dependencies that would make testing harder.
 
 Huge shout out to <a href="https://github.com/venthe">Jacek Lipiec</a> for helping me to figure this stuff out!

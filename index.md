@@ -1,28 +1,28 @@
 
-
+  
 
 # Black box testing React components connected to Redux
 
-Whats the better way to make your code more maintainable and easier to change in the future than writing tests?
+What's the better way to make your code more maintainable and easier to change in the future than writing tests?
 Probably hiring a bunch of interns to test code manually after each commit, but we don't have time and money for that so tests will have to do.
 
 In this post I will focus on the importance of black box testing and how this can be achieved  in React.
 I will be using jest, react-testing-liblary, redux-thunk and Typescript for my own sanity.</br>
-I am also gonna assume that you know the basics of these technologies.
+I am also going to assume that you know the basics of these technologies.
 
-In addition I will only focus on Component Integration Testing (how to test flow of your component in isolated environment) because I don't feel that there are good resources for that and Unit Testing is well examined.
+In addition, I will only focus on Component Integration Testing (how to test flow of your component in isolated environment) because I don't feel that there are good resources for that and Unit Testing is well examined.
 
 ## Black box testing, why bother?
 
-I am big fan of black box testing, especially when working with front-end. In the world of <i>javascript frameworks chaning so fast that before you download npm dependencies this dependency is already outdated</i> I cannot imagine writing tests that can be easliy broken by the change in implementation that doesn't not have any impact on the behaviour of the application. </br>
-This kind of enviroment discourages developers from refactoring and writing tests because everything you touch has high change of breaking something (be it tests or the actual code).
+I am big fan of black box testing, especially when working with front-end. In the world of <i>javaScript frameworks changing so fast that before you download npm dependencies this dependency is already outdated</i> I cannot imagine writing tests that can be easily broken by the change in implementation that doesn't have any impact on the behavior of the application. </br>
+This kind of environment discourages developers from refactoring and writing tests because everything you touch has high chance of breaking something (be it tests or the actual code).
 
-We can avoid this problemy by changing the way of thinking about our code and trying to test <i> behaviour </i> and not the internal implementation (that can be easlily changed). Doing so greatly reduces the need of changing tests when we want to change the way that our code works (e.g. refactoring code for optimization reasons).
+We can avoid this problem by changing the way of thinking about our code and trying to test <i> behavior </i> and not the internal implementation (that can be easily changed). Doing so greatly reduces the need of changing tests when we want to change the way that our code works (e.g. refactoring code for optimization reasons).
 
 //TODO: UMM PRETTY BAD EXAMPLE CONSIDERING THAT I AM WRITING ABOUT REUDX TESTING...
-For example, when testing let's say button counter component, I shouldn't care if the way of storing button counter is implemented within the component as internal state or Redux deals with it, this is an <i>implementation detail</i> that can change, but the <i> behaviour </i> of the button will stay the same.
+For example, when testing let's say button counter component, I shouldn't care if the way of storing button counter is implemented within the component as internal state or Redux deals with it, this is an <i>implementation detail</i> that can change, but the <i> behavior </i> of the button will stay the same.
 
-You might say, that this is a very basic exmaple, real world is not that easy and components have some kind of dependencies (e.g component is calling some endpoint to retrieve data), and how do I test that?
+You might say, that this is a very basic example, real world is not that easy and components have some kind of dependencies (e.g. component is calling some endpoint to retrieve data), and how do I test that?
 
 ## Test scenario
 
@@ -110,11 +110,11 @@ Let's assume that method `getAllMoviesREST()`in  `Movie.action.ts` is an API cal
 Now there is one problem, how do we write test for a component that is depended on external API?
 Well there are two most popular options:
 
-You can intercept all API calls with some test interceptor (external liblary) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that. </br>
-Or we can apply <i>Inversion of Control</i> principle and take our dependency (the `getAllMoviesREST()` method) as a parameter to action (as a method reference) and then compose our component, with all of its dependecies in a  `MoviePanel.component.tsx`.
+You can intercept all API calls with some test interceptor (external library) but that will leave your test fragile and hard to mock up (any change in the API method will force you to do some changes in test) and we want to avoid that. </br>
+Or we can apply <i>Inversion of Control</i> principle and take our dependency (the `getAllMoviesREST()` method) as a parameter to action (as a method reference) and then compose our component, with all of its dependencies in a  `MoviePanel.component.tsx`.
 
 ## Making our component testable
-Firstly let's make our action method (`retrieveMoviesAction()`in  `Movie.action.ts`) independent of concrete implementation of `getAllMoviesREST()` by simply recieving this method as function parameter.
+Firstly let's make our action method (`retrieveMoviesAction()`in  `Movie.action.ts`) independent of concrete implementation of `getAllMoviesREST()` by simply receiving this method as function parameter.
 
  `Movie.action.ts`
 ````typescript 
@@ -127,9 +127,9 @@ export const retrieveMoviesAction = (getAllMovies: () => Promise<MovieDTO[]>): T
 ````
 Simple enough.
 
-Ok but now our  `MoviePanel.component.tsx` is complaining that function `retrieveMoviesAction()` requires 1 argumnet and not 0.
+Ok but now our  `MoviePanel.component.tsx` is complaining that function `retrieveMoviesAction()` requires 1 argument and not 0.
 
-Now you might be temptend to just directly add conrete implementation of our `getAllMovies` method in `mapDispatchToProps` like this.
+Now you might be tempted to just directly add concrete implementation of our `getAllMovies` method in `mapDispatchToProps` like this.
 
  `MoviePanel.component.tsx`
 ````typescript 
@@ -140,7 +140,7 @@ const mapDispatchToProps = (dispatch: ThunkDispatch<AppState, any, AppActions>):
 ````
 
 But this solution still blocks us from injecting mocks into our component. </br>
-Now we need to apply <i>Inversion of Control</i> principle for `mapDispatchToProps` in conjuction with <a href="https://blog.bitsrc.io/understanding-currying-in-javascript-ceb2188c339" target="_blank">currying</a>.
+Now we need to apply <i>Inversion of Control</i> principle for `mapDispatchToProps` in conjunction with <a href="https://blog.bitsrc.io/understanding-currying-in-javascript-ceb2188c339" target="_blank">currying</a>.
 
 ````typescript 
 const mapDispatchToProps = (
@@ -201,7 +201,7 @@ export const MovieList: FC<Props> = (props: Props) => {
 };
 ````
 ## Testing our component
-Testing components connected to redux is very simmilar to testing typical components. The main difference is that we have to create component using ``connect`` function, wrap our component in ``Provider`` component and create mock store. 
+Testing components connected to redux is very similar to testing typical components. The main difference is that we have to create component using ``connect`` function, wrap our component in ``Provider`` component and create mock store. 
 
 Let's start with creating our component with ``connect`` function. </br>
 
@@ -287,10 +287,10 @@ All code samples can be found on my <a href="https://github.com/Waksuu/react-exp
 ## How are we able to inject dependencies in ``connect`` function?
 Let's take a look into the ``connect`` function. What does the connect function do? 
 
- Connect function takes two parameters (well it takes four but we are intrested only in the first two) ``mapStateToProps`` <i>function</i> and ``mapDispatchToProps`` <i>function</i> | <i>object</i> and returns component that is connected to redux store (component with values at disposal defined in previous mentioned functions). </br>
+ Connect function takes two parameters (well it takes four, but we are interested only in the first two) ``mapStateToProps`` <i>function</i> and ``mapDispatchToProps`` <i>function</i> | <i>object</i> and returns component that is connected to redux store (component with values at disposal defined in previous mentioned functions). </br>
 The ``mapStateToProps`` is not important to us, instead let's dive into ``mapDispatchToProps`` in function form.
 
-Maybe type definitions will help us with understaning it.
+Maybe type definitions will help us with understanding it.
 ``connect``
 ````typescript
     <TStateProps = {}, TDispatchProps = {}, TOwnProps = {}, State = DefaultRootState>(
@@ -328,12 +328,12 @@ export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, any, AppActi
 
 export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
 ```
-We are not using second paramter ``ownProps`` so we can ommit it in javascript </br>
+We are not using second paramter ``ownProps`` so we can omit it in JavaScript </br>
 But wait what's that the ``dispatch`` parameter was of type ``Dispatch<Action>`` and not ``ThunkDispatch<AppState,  any, AppActions>`` is it a mistake?
 
-No, thanks to ReduxThunk middleware standard redux dispatch is enchanced with thunk dispatch and now it's type looks like this ``ThunkDispatch<AppState,  any, AppActions>``
+No, thanks to ReduxThunk middleware standard redux dispatch is enhanced with thunk dispatch and now it's type looks like this ``ThunkDispatch<AppState,  any, AppActions>``
 
-Since second paramter of ``connect`` function must be a function that takes ``dispatch: ThunkDispatch<AppState,  any, AppActions>`` we can wrap our ``mapDispatchToProps`` function into anonymus function and pass ``dispatch `` paramter to ``mapDispatchToProps`` explicitly.
+Since second parameter of ``connect`` function must be a function that takes ``dispatch: ThunkDispatch<AppState,  any, AppActions>`` we can wrap our ``mapDispatchToProps`` function into anonymous function and pass ``dispatch `` parameter to ``mapDispatchToProps`` explicitly.
 
 ```typescript
 ...
@@ -347,7 +347,7 @@ export default connect(mapStateToProps, (dispatch) => mapDispatchToProps(dispatc
 Now we have full control over when to pass ``dispatch`` to ``mapDispatchToProps`` allowing us to create <i>Higher Order Function </i> and apply <i> Inversion of Control </i> to get rid of this nasty concrete implementation of  ``getAllMoviesREST`` in our component. </br>
 Are you still with me? Good, let's just do that.
 
-Time to move ``getAllMoviesREST`` to a paramter of ``mapDispatchToProps``
+Time to move ``getAllMoviesREST`` to a parameter of ``mapDispatchToProps``
 ```typescript
 ...
 export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
@@ -376,6 +376,6 @@ export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
 export default connect(mapStateToProps, (dispatch: ThunkDispatch<AppState, any, AppActions>) => mapDispatchToProps(getAllMoviesREST)(dispatch))(MoviePanel);
 ```
 
-And now our component is free of it's dependencies that would make testing harder.
+And now our component is free of its dependencies that would make testing harder.
 
-Huge shout out to <a href="https://github.com/venthe">Jacek Lipiec</a> for helping me figuring this stuff out!
+Huge shout out to <a href="https://github.com/venthe">Jacek Lipiec</a> for helping me to figure this stuff out!

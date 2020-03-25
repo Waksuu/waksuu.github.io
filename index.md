@@ -35,8 +35,6 @@ Let's say that we want to test component that is responsible for managing movies
 ```typescript
 type Props = LinkStateProps & LinkDispatchProps;
 
-// FIXME: What is FC?
-// FIXME: Unnecessary braces (Twice)
 const MoviePanel: FC<Props> = (props: Props) => {
   useEffect(() => {
     props.retrieveMovies();
@@ -63,9 +61,8 @@ interface LinkDispatchProps {
   clearMovies: () => void;
 }
 
-// FIXME: If writing TS, avoid any
 const mapDispatchToProps = (
-  dispatch: ThunkDispatch<AppState, any, AppActions>
+  dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
   retrieveMovies: () => dispatch(retrieveMoviesAction()),
   clearMovies: () => dispatch(clearMovies())
@@ -77,33 +74,23 @@ export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
 `Movie.action.ts`
 
 ```typescript
-export const retrieveMoviesAction = (): ThunkAction<
-  Promise<void>,
-  AppState,
-  undefined,
-  AppActions
-  // FIXME: Unnecessary braces
-> => {
-  return async (dispatch: ThunkDispatch<AppState, any, AppActions>) => {
+export const retrieveMoviesAction = (): ThunkAction<Promise<void>,
+    AppState,
+    undefined,
+    AppActions
+> => async (dispatch: ThunkDispatch<AppState, undefined, AppActions>) => {
     const movies: MovieDTO[] = await getAllMoviesREST();
     dispatch(moviesRetrieved(movies));
-  };
 };
 
-// FIXME: Unnecessary braces
-const moviesRetrieved = (movies: MovieDTO[]): RetrieveMovieListAction => {
-  return {
+const moviesRetrieved = (movies: MovieDTO[]): RetrieveMovieListAction => ({
     type: MovieListRetrieved,
     movies
-  };
-};
+});
 
-// FIXME: Unnecessary braces
-export const clearMovies = (): ClearMovieListAction => {
-  return {
-    type: ClearMovieListRequest
-  };
-};
+export const clearMovies = (): ClearMovieListAction => ({  
+  type: ClearMovieListRequest,  
+});
 ```
 
 `Movie.reducer.ts`
@@ -140,14 +127,13 @@ Firstly let's make our action method (`retrieveMoviesAction()`in `Movie.action.t
 `Movie.action.ts`
 
 ```typescript
-export const retrieveMoviesAction = (
-  getAllMovies: () => Promise<MovieDTO[]>
-  // FIXME: Unnecessary braces
-): ThunkAction<Promise<void>, AppState, undefined, AppActions> => {
-  return async (dispatch: ThunkDispatch<AppState, any, AppActions>) => {
+export const retrieveMoviesAction = (getAllMovies: () => Promise<MovieDTO[]>): ThunkAction<Promise<void>,
+    AppState,
+    undefined,
+    AppActions
+> => async (dispatch: ThunkDispatch<AppState, undefined, AppActions>) => {
     const movies: MovieDTO[] = await getAllMovies();
     dispatch(moviesRetrieved(movies));
-  };
 };
 ```
 
@@ -161,8 +147,7 @@ Now you might be tempted to just directly add concrete implementation of our `ge
 
 ```typescript
 const mapDispatchToProps = (
-  // FIXME: No ANY
-  dispatch: ThunkDispatch<AppState, any, AppActions>
+  dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
   retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
   clearMovies: () => dispatch(clearMovies())
@@ -174,8 +159,7 @@ Now we need to apply *Inversion of Control* principle for `mapDispatchToProps` i
 
 ```typescript
 const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  // FIXME: No ANY
-  dispatch: ThunkDispatch<AppState, any, AppActions>
+  dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
   retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
   clearMovies: () => dispatch(clearMovies())
@@ -183,8 +167,7 @@ const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
 
 export default connect(
   mapStateToProps,
-  // FIXME: No ANY
-  (dispatch: ThunkDispatch<AppState, any, AppActions>) =>
+  (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
     mapDispatchToProps(getAllMoviesREST)(dispatch)
 )(MoviePanel);
 ```
@@ -255,16 +238,12 @@ Let's start with creating our component with `connect` function.
 
 ```typescript
 import { mapStateToProps, mapDispatchToProps, MoviePanel } from  "../../../app/movie/MoviePanel.component";
-// FIXME: Three dots? :)
 ...
 const MoviePanelMock: FC = connect(mapStateToProps, (
-            dispatch: ThunkDispatch<AppState, any, AppActions>
+            dispatch: ThunkDispatch<AppState, undefined, AppActions>
         ) => mapDispatchToProps(getAllMoviesMock)(dispatch))(MoviePanel);
 
-// FIXME: Unnecessary braces
-const getAllMoviesMock = (): Promise<MovieDTO[]> => {
-    return Promise.resolve(mockMovies);
-}
+const getAllMoviesMock = (): Promise<MovieDTO[]> => Promise.resolve(mockMovies);
 
 const mockMovies: MovieDTO[] = [
     {
@@ -279,13 +258,13 @@ const mockMovies: MovieDTO[] = [
 ```
 
 (The component name has to start from upper case)  
+Also note that we have to import `MoviePanel` as **not** default export (hence the curly brackets around import).  
 And that's it, now we created mock component with injected dependencies.
 
 Now we need to create store
 
 ```typescript
 import { configureStore, AppState } from  "../../../common/redux/store/ConfigureStore";
-// FIXME: Three dots? :)
 ...
 const mockStore: Store<AppState, AppActions> = configureStore();
 ```
@@ -315,7 +294,7 @@ describe("Movie Panel", () => {
     mockStore = configureStore();
     MoviePanelMock = connect(
       mapStateToProps,
-      (dispatch: ThunkDispatch<AppState, any, AppActions>) =>
+      (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
         mapDispatchToProps(getAllMoviesMock)(dispatch)
     )(MoviePanel);
   });
@@ -388,10 +367,8 @@ Let's create that function
 `MoviePanel.component.tsx`
 
 ```typescript
-// FIXME: Three dots? :)
 ...
-// FIXME: Please type this ANY
-export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, undefined, AppActions>): LinkDispatchProps => ({
     retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
     clearMovies: () => dispatch(clearMovies())
 });
@@ -400,16 +377,15 @@ export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
 ```
 
 We are not using second paramter `ownProps` so we can omit it in JavaScript  
-But wait what's that the `dispatch` parameter was of type `Dispatch<Action>` and not `ThunkDispatch<AppState, any, AppActions>` is it a mistake?
+But wait what's that the `dispatch` parameter was of type `Dispatch<Action>` and not `ThunkDispatch<AppState, undefined, AppActions>` is it a mistake?
 
-No, thanks to ReduxThunk middleware standard redux dispatch is enhanced with thunk dispatch and now it's type looks like this `ThunkDispatch<AppState, any, AppActions>`
+No, thanks to ReduxThunk middleware standard redux dispatch is enhanced with thunk dispatch and now it's type looks like this `ThunkDispatch<AppState, undefined, AppActions>`
 
-Since second parameter of `connect` function must be a function that takes `dispatch: ThunkDispatch<AppState, any, AppActions>` we can wrap our `mapDispatchToProps` function into anonymous function and pass `dispatch` parameter to `mapDispatchToProps` explicitly.
+Since second parameter of `connect` function must be a function that takes `dispatch: ThunkDispatch<AppState, undefined, AppActions>` we can wrap our `mapDispatchToProps` function into anonymous function and pass `dispatch` parameter to `mapDispatchToProps` explicitly.
 
 ```typescript
-// FIXME: Three dots? :)
 ...
-export const mapDispatchToProps = (dispatch: ThunkDispatch<AppState, any, AppActions>): export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+export const mapDispatchToProps = (dispatch: ThunkDispatch<AppState, undefined, AppActions>): export const mapDispatchToProps= (dispatch: ThunkDispatch<AppState, undefined, AppActions>): LinkDispatchProps => ({
     retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
     clearMovies: () => dispatch(clearMovies())
 });
@@ -424,7 +400,7 @@ Time to move `getAllMoviesREST` to a parameter of `mapDispatchToProps`
 
 ```typescript
 ...
-export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, any, AppActions>): LinkDispatchProps => ({
+export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (dispatch: ThunkDispatch<AppState, undefined, AppActions>): LinkDispatchProps => ({
     retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
     clearMovies: () => dispatch(clearMovies())
 });
@@ -436,7 +412,7 @@ Like this:
 
 ```typescript
 export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  dispatch: ThunkDispatch<AppState, any, AppActions>
+  dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
   retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
   clearMovies: () => dispatch(clearMovies())
@@ -452,7 +428,7 @@ This is also valid, but more explicit
 
 ```typescript
 export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  dispatch: ThunkDispatch<AppState, any, AppActions>
+  dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
   retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
   clearMovies: () => dispatch(clearMovies())
@@ -460,13 +436,11 @@ export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
 
 export default connect(
   mapStateToProps,
-  (dispatch: ThunkDispatch<AppState, any, AppActions>) =>
+  (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
     mapDispatchToProps(getAllMoviesREST)(dispatch)
 )(MoviePanel);
 ```
 
-`// FXIME: ? It's not free of dependencies, dependencies are injected which makes testing easier.`  
-`// FIXME: Describe in tl;dr what we have achieved without vague statements`  
-And now our component is free of dependencies that would make testing harder.
+Now we can easily inject dependencies into our components allowing it to be free of slow and unreliable communication means such as API calls, which makes tests faster and easier to maintain.
 
 Huge shout out to [Jacek Lipiec](https://github.com/venthe) for helping me to figure this stuff out!

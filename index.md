@@ -441,6 +441,6 @@ export default connect(
 )(MoviePanel);
 ```
 
-Now we can easily inject dependencies into our components allowing it to be free of slow and unreliable communication means such as API calls, which makes tests faster and easier to maintain.
+Now we can easily inject dependencies into our components, allowing it to be free of slow and unreliable communication means such as API calls, which makes tests faster and easier to maintain.
 
 Huge shout out to [Jacek Lipiec](https://github.com/venthe) for helping me to figure this stuff out!

@@ -36,36 +36,36 @@ Let's say that we want to test component that is responsible for managing movies
 type Props = LinkStateProps & LinkDispatchProps;
 
 const MoviePanel: FC<Props> = (props: Props) => {
-  useEffect(() => {
-    props.retrieveMovies();
-  }, []);
+    useEffect(() => {
+        props.retrieveMovies();
+    }, []);
 
-  return (
-    <>
-      <MovieList movies={props.movies} />
-      <MovieControls clearMovies={props.clearMovies} />
-    </>
-  );
+    return (
+        <>
+            <MovieList movies={props.movies} />
+            <MovieControls clearMovies={props.clearMovies} />
+        </>
+    );
 };
 
 interface LinkStateProps {
-  movies: MovieDTO[];
+    movies: MovieDTO[];
 }
 
 const mapStateToProps = (state: AppState): LinkStateProps => ({
-  movies: state.movie.movies
+    movies: state.movie.movies
 });
 
 interface LinkDispatchProps {
-  retrieveMovies: () => Promise<void>;
-  clearMovies: () => void;
+    retrieveMovies: () => Promise<void>;
+    clearMovies: () => void;
 }
 
 const mapDispatchToProps = (
-  dispatch: ThunkDispatch<AppState, undefined, AppActions>
+    dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
-  retrieveMovies: () => dispatch(retrieveMoviesAction()),
-  clearMovies: () => dispatch(clearMovies())
+    retrieveMovies: () => dispatch(retrieveMoviesAction()),
+    clearMovies: () => dispatch(clearMovies())
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(MoviePanel);
@@ -78,7 +78,7 @@ export const retrieveMoviesAction = (): ThunkAction<Promise<void>,
     AppState,
     undefined,
     AppActions
-> => async (dispatch: ThunkDispatch<AppState, undefined, AppActions>) => {
+    > => async (dispatch: ThunkDispatch<AppState, undefined, AppActions>) => {
     const movies: MovieDTO[] = await getAllMoviesREST();
     dispatch(moviesRetrieved(movies));
 };
@@ -88,8 +88,8 @@ const moviesRetrieved = (movies: MovieDTO[]): RetrieveMovieListAction => ({
     movies
 });
 
-export const clearMovies = (): ClearMovieListAction => ({  
-  type: ClearMovieListRequest,  
+export const clearMovies = (): ClearMovieListAction => ({
+    type: ClearMovieListRequest,
 });
 ```
 
@@ -99,17 +99,17 @@ export const clearMovies = (): ClearMovieListAction => ({
 const moviesInitialState: MovieDTO[] = [];
 
 export const movieReducer = (
-  state = moviesInitialState,
-  action: MovieListActionTypes
+    state = moviesInitialState,
+    action: MovieListActionTypes
 ): MovieDTO[] => {
-  switch (action.type) {
-    case MovieListRetrieved:
-      return action.movies;
-    case ClearMovieListRequest:
-      return [];
-    default:
-      return state;
-  }
+    switch (action.type) {
+        case MovieListRetrieved:
+            return action.movies;
+        case ClearMovieListRequest:
+            return [];
+        default:
+            return state;
+    }
 };
 ```
 
@@ -147,10 +147,10 @@ Now you might be tempted to just directly add concrete implementation of our `ge
 
 ```typescript
 const mapDispatchToProps = (
-  dispatch: ThunkDispatch<AppState, undefined, AppActions>
+    dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
-  retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
-  clearMovies: () => dispatch(clearMovies())
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMoviesREST)),
+    clearMovies: () => dispatch(clearMovies())
 });
 ```
 
@@ -159,16 +159,16 @@ Now we need to apply *Inversion of Control* principle for `mapDispatchToProps` i
 
 ```typescript
 const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  dispatch: ThunkDispatch<AppState, undefined, AppActions>
+    dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
-  retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
-  clearMovies: () => dispatch(clearMovies())
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
 });
 
 export default connect(
-  mapStateToProps,
-  (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
-    mapDispatchToProps(getAllMoviesREST)(dispatch)
+    mapStateToProps,
+    (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
+        mapDispatchToProps(getAllMoviesREST)(dispatch)
 )(MoviePanel);
 ```
 
@@ -204,15 +204,15 @@ And in order to check if our component was changed upon some action we need to a
 
 ```typescript
 export const MovieControls: FC<Props> = (props: Props) => {
-  return (
-    <button
-      data-testid="clear-movies-button"
-      onClick={props.clearMovies}
-      className="my-button"
-    >
-      Clear movies!
-    </button>
-  );
+    return (
+        <button
+            data-testid="clear-movies-button"
+            onClick={props.clearMovies}
+            className="my-button"
+        >
+            Clear movies!
+        </button>
+    );
 };
 ```
 
@@ -220,13 +220,13 @@ export const MovieControls: FC<Props> = (props: Props) => {
 
 ```typescript
 export const MovieList: FC<Props> = (props: Props) => {
-  return (
-    <div data-testid="movie-list-component">
-      {props.movies.map(movie => (
-        <div key={movie.id}>{movie.name}</div>
-      ))}
-    </div>
-  );
+    return (
+        <div data-testid="movie-list-component">
+            {props.movies.map(movie => (
+                <div key={movie.id}>{movie.name}</div>
+            ))}
+        </div>
+    );
 };
 ```
 
@@ -275,9 +275,9 @@ And finally rendering our component
 
 ```typescript
 await render(
-  <Provider store={mockStore}>
-    <MoviePanelMock />
-  </Provider>
+    <Provider store={mockStore}>
+        <MoviePanelMock />
+    </Provider>
 );
 ```
 
@@ -287,34 +287,34 @@ In the end our sample test can look like this.
 
 ```typescript
 describe("Movie Panel", () => {
-  let mockStore: Store<AppState, AppActions>;
-  let MoviePanelMock: FC;
+    let mockStore: Store<AppState, AppActions>;
+    let MoviePanelMock: FC;
 
-  beforeEach(() => {
-    mockStore = configureStore();
-    MoviePanelMock = connect(
-      mapStateToProps,
-      (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
-        mapDispatchToProps(getAllMoviesMock)(dispatch)
-    )(MoviePanel);
-  });
+    beforeEach(() => {
+        mockStore = configureStore();
+        MoviePanelMock = connect(
+            mapStateToProps,
+            (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
+                mapDispatchToProps(getAllMoviesMock)(dispatch)
+        )(MoviePanel);
+    });
 
-  afterEach(cleanup);
+    afterEach(cleanup);
 
-  test("Should clear movies after pressing clear movies button", async () => {
-    // GIVEN
-    await render(
-      <Provider store={mockStore}>
-        <MoviePanelMock />
-      </Provider>
-    );
+    test("Should clear movies after pressing clear movies button", async () => {
+        // GIVEN
+        await render(
+            <Provider store={mockStore}>
+                <MoviePanelMock />
+            </Provider>
+        );
 
-    // WHEN
-    fireEvent.click(screen.getByTestId("clear-movies-button"));
+        // WHEN
+        fireEvent.click(screen.getByTestId("clear-movies-button"));
 
-    // THEN
-    expect(screen.queryByTestId("movie-list-component")).toBeEmpty();
-  });
+        // THEN
+        expect(screen.queryByTestId("movie-list-component")).toBeEmpty();
+    });
 });
 ```
 
@@ -412,15 +412,15 @@ Like this:
 
 ```typescript
 export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  dispatch: ThunkDispatch<AppState, undefined, AppActions>
+    dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
-  retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
-  clearMovies: () => dispatch(clearMovies())
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
 });
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps(getAllMoviesREST)
+    mapStateToProps,
+    mapDispatchToProps(getAllMoviesREST)
 )(MoviePanel);
 ```
 
@@ -428,16 +428,16 @@ This is also valid, but more explicit
 
 ```typescript
 export const mapDispatchToProps = (getAllMovies: () => Promise<MovieDTO[]>) => (
-  dispatch: ThunkDispatch<AppState, undefined, AppActions>
+    dispatch: ThunkDispatch<AppState, undefined, AppActions>
 ): LinkDispatchProps => ({
-  retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
-  clearMovies: () => dispatch(clearMovies())
+    retrieveMovies: () => dispatch(retrieveMoviesAction(getAllMovies)),
+    clearMovies: () => dispatch(clearMovies())
 });
 
 export default connect(
-  mapStateToProps,
-  (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
-    mapDispatchToProps(getAllMoviesREST)(dispatch)
+    mapStateToProps,
+    (dispatch: ThunkDispatch<AppState, undefined, AppActions>) =>
+        mapDispatchToProps(getAllMoviesREST)(dispatch)
 )(MoviePanel);
 ```
 

@@ -1,3 +1,4 @@
+
 # Black box testing React components connected to Redux
 
 What's the better way to make your code more maintainable and easier to change in the future than writing tests?
@@ -16,12 +17,12 @@ This kind of environment discourages developers from refactoring and writing tes
 
 We can avoid this problem by changing the way of thinking about our code and trying to test *behavior* and not the internal implementation (that can be easily changed). Doing so greatly reduces the need of changing tests when we want to change the way that our code works (e.g. refactoring code for optimization reasons).
 
-`// TODO: UMM PRETTY BAD EXAMPLE CONSIDERING THAT I AM WRITING ABOUT REDUX TESTING...`  
-For example, when testing, let's say, button counter component, I shouldn't care if the way of storing button counter is implemented within the component as internal state or Redux deals with it, this is an *implementation detail* that can change, but the *behavior* of the button will stay the same.
+For example, when testing, let's say, spinner component for data loading, I shouldn't care if the way of triggering that spinner is implemented with events or some boolean flag, this is an *implementation detail* that can change, but the *behavior* of the spinner on that page will stay the same.
 
 You might say, that this is a very basic example, real world is not that easy and components have some kind of dependencies (e.g. component is calling some endpoint to retrieve data), and how do I test that?
 
-`// FIXME: Please write what are yout trying to achieve. "black box testing" is too vague`  
+Keep that in mind that topic of this post is integration testing and how to do that in the most flexible way.  
+Your tests suite should still consist mostly of unit tests, but from time to time integration tests can come in handy and I will present to you how to write integration tests that are cheap and easy to maintain.  
 
 ## Test scenario
 
